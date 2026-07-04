@@ -1,0 +1,22 @@
+# One-click deploy to Render (https://render.com)
+# In the dashboard: New > Blueprint > connect this repo.
+services:
+  - type: web
+    name: medisum-ai-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false            # Set in Render Dashboard > Environment
+      - key: MONGODB_URI
+        sync: false            # MongoDB Atlas connection string
+      - key: MONGODB_DB
+        value: medisum
+      - key: JWT_SECRET
+        generateValue: true    # Auto-generated secure secret
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false            # Set to your Vercel URL e.g. https://medisum.vercel.app
