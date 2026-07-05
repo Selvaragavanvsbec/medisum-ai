@@ -71,3 +71,9 @@ class SummaryResponse(BaseModel):
     lifestyle_suggestions: List[str] = []
     risk_level: str = "low"
     emergency_warning: str | None = None
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(..., description="User query message.")
+    context_report_text: str | None = Field(None, description="Optional raw context report text.")
+

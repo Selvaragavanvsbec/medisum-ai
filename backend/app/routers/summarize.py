@@ -9,9 +9,9 @@ from app.core.config import get_settings
 from app.core.deps import current_user
 from app.core.rate_limit import RateLimiter, client_key
 from app.core.security import content_hash, sanitize, screen_input
-from app.models.schemas import SummarizeRequest, SummaryResponse
+from app.models.schemas import SummarizeRequest, SummaryResponse, ChatRequest
 from app.services import db, trends
-from app.services.llm import summarize_report
+from app.services.llm import summarize_report, chat_with_agent
 
 logger = logging.getLogger("medisum.api")
 settings = get_settings()
@@ -97,3 +97,15 @@ async def get_trends(user: dict = Depends(current_user)):
 async def get_user_reports(user: dict = Depends(current_user)):
     """Return this user's full historical summarized reports."""
     return {"items": await db.get_user_summaries(user["email"])}
+
+
+@router.post("/chat")
+async def chat_interaction(payload: ChatRequest):
+    """Answer patient questions about report or general queries."""
+    try:
+        reply = await chat_with_agent(payload.message, payload.context_report_text)
+        return {"reply": reply}
+    except Exception as exc:
+        logger.error("Chatbot inference failed: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+

@@ -4,6 +4,7 @@ import { ThemeProvider } from "./theme.jsx";
 import { ToastProvider } from "./ui.jsx";
 import { HealthProvider } from "./context/HealthContext.jsx";
 import CommandPalette from "./CommandPalette.jsx";
+import AIChatbot from "./AIChatbot.jsx";
 import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
@@ -17,6 +18,7 @@ import Reminders from "./pages/Reminders.jsx";
 import Settings from "./pages/Settings.jsx";
 import Trends from "./pages/Trends.jsx";
 import Profile from "./pages/Profile.jsx";
+import CompareReports from "./pages/CompareReports.jsx";
 import { AdminDashboard, AdminUsers } from "./pages/Admin.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
@@ -36,6 +38,15 @@ function PaletteGate() {
   return <CommandPalette />;
 }
 
+// Global Chatbot gate
+function ChatbotGate() {
+  const { auth } = useAuth();
+  const loc = useLocation();
+  const onAuthPage = ["/login", "/register", "/"].includes(loc.pathname);
+  if (!auth || onAuthPage) return null;
+  return <AIChatbot />;
+}
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -44,6 +55,7 @@ export default function App() {
           <HealthProvider>
             <BrowserRouter>
               <PaletteGate />
+              <ChatbotGate />
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
@@ -58,6 +70,7 @@ export default function App() {
                 <Route path="/app/settings" element={<Protected><Settings /></Protected>} />
                 <Route path="/app/trends" element={<Protected><Trends /></Protected>} />
                 <Route path="/app/profile" element={<Protected><Profile /></Protected>} />
+                <Route path="/app/compare" element={<Protected><CompareReports /></Protected>} />
                 <Route path="/admin" element={<Protected role="admin"><AdminDashboard /></Protected>} />
                 <Route path="/admin/users" element={<Protected role="admin"><AdminUsers /></Protected>} />
                 <Route path="*" element={<NotFound />} />

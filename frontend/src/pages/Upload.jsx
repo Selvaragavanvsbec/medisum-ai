@@ -188,14 +188,28 @@ export default function Upload() {
     }
   }
 
+  const [speaking, setSpeaking] = useState(false);
+
   function readAloud() {
     if (!result || !window.speechSynthesis) return;
+    
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      toast("Voice reader stopped", "info");
+      return;
+    }
+
     const parts = [result.overview, ...(result.abnormal_highlights || [])].join(". ");
     const u = new SpeechSynthesisUtterance(parts);
     u.rate = 0.98;
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    
+    setSpeaking(true);
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
-    toast("Reading your summary aloud", "info");
+    toast("Reading overview & alerts aloud...", "ok");
   }
 
   const copy = () => {
@@ -204,6 +218,16 @@ export default function Upload() {
       toast("Overview copied to clipboard", "ok");
     }
   };
+
+  const exportMarkdown = () => {
+    if (!result) return;
+    const txt = `MEDI-SUM AI REPORT ANALYSIS\n\nPatient Details:\n- Age: ${result.patient_details?.age}\n- Gender: ${result.patient_details?.gender}\n- Date: ${result.patient_details?.test_date}\n\nClinical Overview:\n${result.overview}\n\nKey Findings:\n` + 
+      (result.key_findings || []).map(f => `- ${f.item}: ${f.value} [${f.flag}]`).join('\n') + 
+      `\n\nDisclaimer: ${result.disclaimer}`;
+    navigator.clipboard?.writeText(txt);
+    toast("Full report exported to clipboard in markdown format!", "ok");
+  };
+
 
   return (
     <Shell>
@@ -372,8 +396,19 @@ export default function Upload() {
                 {expandedCards.diagnosis && (
                   <div className="p-4 bg-purple-500/5 relative">
                     <div className="absolute right-4 top-4 flex gap-2">
-                      <button className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white" title="Read Aloud" onClick={readAloud}><Icon d={P.bell} className="w-4 h-4" /></button>
-                      <button className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white" title="Copy Overview" onClick={copy}><Icon d={P.copy} className="w-4 h-4" /></button>
+                      <button 
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white ${speaking ? "bg-indigo-500 text-white animate-pulse" : "bg-zinc-800"}`} 
+                        title={speaking ? "Stop voice synthesis" : "Read Aloud"} 
+                        onClick={readAloud}
+                      >
+                        <Icon d={P.mic} className="w-4 h-4" />
+                      </button>
+                      <button className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white" title="Copy Overview" onClick={copy}>
+                        <Icon d={P.copy} className="w-4 h-4" />
+                      </button>
+                      <button className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white" title="Export Markdown Report" onClick={exportMarkdown}>
+                        <Icon d={P.export} className="w-4 h-4" />
+                      </button>
                     </div>
                     <p className="text-sm leading-relaxed pr-20">{result.overview}</p>
                     {result.abnormal_highlights?.length > 0 && (

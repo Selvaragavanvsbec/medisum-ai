@@ -53,3 +53,36 @@ async def summarize_report(report_text: str, reading_level: str = "simple") -> d
     except (ValueError, json.JSONDecodeError) as exc:
         logger.error("Failed to parse LLM JSON: %s", exc)
         raise ValueError("The AI returned an unreadable response. Please retry.")
+
+
+async def chat_with_agent(message: str, context_report: str | None = None) -> str:
+    """Answer patient questions about their medical report using Groq."""
+    client = _get_client()
+    
+    system_prompt = (
+        "You are MediSum AI, an expert medical report analysis chatbot. "
+        "Your goal is to answer patient questions about their diagnostic results clearly, empathetically, and accurately. "
+        "Strictly adhere to these rules:\n"
+        "1. Answer based ONLY on the provided report context if available.\n"
+        "2. If no context is provided or the information is not in the context, tell the patient you don't have that information.\n"
+        "3. You are NOT a diagnosing clinician. Never prescribe, diagnose, or recommend treatments.\n"
+        "4. Always end your answer with a brief disclaimer recommending they speak with their doctor."
+    )
+    
+    messages = [{"role": "system", "content": system_prompt}]
+    if context_report:
+        messages.append({
+            "role": "system",
+            "content": f"The patient has uploaded the following medical report context:\n<REPORT>\n{context_report}\n</REPORT>"
+        })
+        
+    messages.append({"role": "user", "content": message})
+    
+    completion = await client.chat.completions.create(
+        model=settings.GROQ_MODEL,
+        messages=messages,
+        temperature=0.5,
+        max_tokens=600,
+    )
+    return completion.choices[0].message.content or "No response from AI."
+

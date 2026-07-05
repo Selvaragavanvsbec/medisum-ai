@@ -5,16 +5,22 @@ import { useAuth } from "../auth.jsx";
 import { ThemeToggle } from "../theme.jsx";
 import { useHealth } from "../context/HealthContext.jsx";
 
-const USER_NAV = [
+const CORE_NAV = [
   { to: "/app", label: "Dashboard", icon: P.grid },
-  { to: "/app/upload", label: "Upload", icon: P.upload },
-  { to: "/app/reports", label: "Reports", icon: P.file },
-  { to: "/app/history", label: "History", icon: P.clock },
-  { to: "/app/automation", label: "Automation", icon: P.pulse },
-  { to: "/app/alerts", label: "Alerts", icon: P.warn },
+  { to: "/app/upload", label: "New Scan", icon: P.upload },
+  { to: "/app/reports", label: "Reports DB", icon: P.file },
+];
+const ANALYTICS_NAV = [
+  { to: "/app/history", label: "History & Trends", icon: P.clock },
+  { to: "/app/compare", label: "Compare Reports", icon: P.compare },
+  { to: "/app/alerts", label: "Clinical Alerts", icon: P.warn },
+];
+const AUTOMATION_NAV = [
+  { to: "/app/automation", label: "Workflow Engine", icon: P.pulse },
   { to: "/app/reminders", label: "Reminders", icon: P.bell },
   { to: "/app/settings", label: "Settings", icon: P.settings },
 ];
+
 const ADMIN_NAV = [
   { to: "/admin", label: "Overview", icon: P.grid },
   { to: "/admin/users", label: "Users", icon: P.users },
@@ -27,9 +33,7 @@ export default function Shell({ children, nav }) {
   const [showNotif, setShowNotif] = useState(false);
   
   const user = auth?.user || {};
-  const items = nav || (user.role === "admin" ? ADMIN_NAV : USER_NAV);
   const initials = (user.name || user.email || "U").trim().slice(0, 2).toUpperCase();
-
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   function doLogout() {
@@ -43,17 +47,53 @@ export default function Shell({ children, nav }) {
       <div className="grid-ov" />
       <div className="shell">
         <aside className="side">
-          <Link to="/" className="brand"><span className="mark"><Icon d={P.pulse} /></span><span className="bn">Medi<span>Sum</span></span></Link>
+          <Link to="/" className="brand">
+            <span className="mark"><Icon d={P.pulse} /></span>
+            <span className="bn">Medi<span>Sum</span></span>
+          </Link>
+          
           <nav className="side-nav">
-            {items.map((n) => (
-              <NavLink key={n.to} to={n.to} end className={({ isActive }) => (isActive ? "active" : "")}>
-                <Icon d={n.icon} />{n.label}
-              </NavLink>
-            ))}
+            {user.role === "admin" ? (
+              <>
+                <div className="nav-section-label">Admin Controls</div>
+                {ADMIN_NAV.map((n) => (
+                  <NavLink key={n.to} to={n.to} end className={({ isActive }) => (isActive ? "active" : "")}>
+                    <Icon d={n.icon} />{n.label}
+                  </NavLink>
+                ))}
+              </>
+            ) : (
+              <>
+                <div className="nav-section-label">Core Platform</div>
+                {CORE_NAV.map((n) => (
+                  <NavLink key={n.to} to={n.to} end className={({ isActive }) => (isActive ? "active" : "")}>
+                    <Icon d={n.icon} />{n.label}
+                  </NavLink>
+                ))}
+
+                <div className="nav-section-label">Analytics & Insights</div>
+                {ANALYTICS_NAV.map((n) => (
+                  <NavLink key={n.to} to={n.to} end className={({ isActive }) => (isActive ? "active" : "")}>
+                    <Icon d={n.icon} />{n.label}
+                  </NavLink>
+                ))}
+
+                <div className="nav-section-label">Automation Tools</div>
+                {AUTOMATION_NAV.map((n) => (
+                  <NavLink key={n.to} to={n.to} end className={({ isActive }) => (isActive ? "active" : "")}>
+                    <Icon d={n.icon} />{n.label}
+                  </NavLink>
+                ))}
+              </>
+            )}
           </nav>
+
           <div className="side-foot">
             <div className="side-user">
-              <div className="avatar">{initials}</div>
+              <div className="avatar">
+                <span className="avatar-ring"></span>
+                {initials}
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="nm truncate">{user.name || "User"}</div>
                 <div className="rl">{user.role}</div>
@@ -66,15 +106,22 @@ export default function Shell({ children, nav }) {
                 >
                   <Icon d={P.bell} className="w-[18px] h-[18px]" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-pink-500 ring-1 ring-zinc-950 animate-ping"></span>
+                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-pink-500 ring-2 ring-zinc-950 animate-pulse"></span>
                   )}
                 </button>
                 <ThemeToggle />
               </div>
             </div>
             <button className="logout" onClick={doLogout}><Icon d={P.logout} />Log out</button>
-            <div style={{ fontSize: 11, color: "var(--ink-faint)", textAlign: "center", display: "flex", items: "center", justifyContent: "center", gap: 6 }}>
-              Press <span className="kbd">⌘K</span> for commands
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+              <div className="sys-status">
+                <span className="sys-dot"></span>
+                Automation Active
+              </div>
+              <div style={{ fontSize: 10, color: "var(--ink-faint)", textAlign: "center" }}>
+                Press <span className="kbd">⌘K</span> for commands
+              </div>
             </div>
           </div>
         </aside>

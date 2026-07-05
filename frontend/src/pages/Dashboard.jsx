@@ -140,73 +140,69 @@ export default function Dashboard() {
     : type === "email"    ? { bg: "rgba(14,165,233,.15)", c: "#38bdf8" }
     : { bg: "rgba(16,185,129,.15)", c: "#34d399" };
 
-  /* ── Render ──────────────────────────────────────────── */
   return (
     <Shell>
-
       {/* PAGE HEADER */}
-      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, marginBottom:32, flexWrap:"wrap" }}>
+      <div className="page-head anim-fade-up">
         <div>
-          <h1 style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:30, fontWeight:700, letterSpacing:"-0.02em", color:"var(--ink)", lineHeight:1.2 }}>
-            Healthcare Automation Command Center
-          </h1>
-          <p style={{ fontSize:15, color:"var(--ink-soft)", marginTop:8, lineHeight:1.6 }}>
-            Welcome back, <strong style={{ color:"var(--ink)" }}>{auth?.user?.name || "Practitioner"}</strong>.{" "}
-            Monitoring patient indicators and auto-dispatched clinical workflows.
-          </p>
+          <h1 className="grad-text">Healthcare Automation Command Center</h1>
+          <p>Welcome back, <strong>{auth?.user?.name || "Practitioner"}</strong>. Monitoring active clinical indicators and auto-dispatched alerts.</p>
         </div>
-        <div style={{ display:"flex", gap:10, flexWrap:"wrap", flexShrink:0 }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", flexShrink: 0 }}>
           {reports.length === 0 && (
-            <button className="btn btn-glass btn-sm" onClick={seedDemoData} style={{ fontSize:14 }}>
-              <Icon d={P.star} style={{ color:"#f59e0b" }} /> Load Demo Sandbox
+            <button className="btn btn-glass btn-sm" onClick={seedDemoData}>
+              <Icon d={P.star} style={{ color: "#f59e0b" }} /> Load Sandbox Demo
             </button>
           )}
-          <Link to="/app/upload" className="btn btn-primary" style={{ fontSize:15 }}>
+          <Link to="/app/upload" className="btn btn-primary btn-sm">
             <Icon d={P.upload} /> Upload Report
           </Link>
         </div>
       </div>
 
       {/* STAT CARDS */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))", gap:20, marginBottom:28 }}>
-        {STAT_CARDS.map((sc) => (
-          <div key={sc.label} className="glass" style={{ padding:"22px 24px", borderRadius:18, display:"flex", alignItems:"center", gap:18 }}>
-            <div style={{ width:54, height:54, borderRadius:15, background:sc.iconBg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-              <Icon d={sc.icon} style={{ width:26, height:26, color:sc.iconC }} />
-            </div>
-            <div style={{ minWidth:0 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:"var(--ink-faint)", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:5 }}>
-                {sc.label}
+      <div className="stats anim-fade-up anim-fade-up-d1">
+        {STAT_CARDS.map((sc, i) => (
+          <div key={sc.label} className="glass stat">
+            <div className="flex justify-between items-start mb-3">
+              <div className="ico" style={{ backgroundColor: sc.iconBg, color: sc.iconC }}>
+                <Icon d={sc.icon} />
               </div>
-              <div style={{ fontSize:34, fontWeight:800, color:sc.valC, lineHeight:1, fontFamily:"'Space Grotesk',sans-serif", display:"flex", alignItems:"baseline", gap:3 }}>
-                <Counter value={sc.value} />{sc.suffix || ""}
-                {sc.pulse && <span style={{ width:8, height:8, borderRadius:"50%", background:"#fb7185", marginLeft:6, display:"inline-block", animation:"spin 1.2s linear infinite" }} />}
-              </div>
-              <div style={{ fontSize:13, color:"var(--ink-soft)", marginTop:5 }}>{sc.sub}</div>
+              {sc.pulse && (
+                <span className="flex h-3 w-3 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                </span>
+              )}
             </div>
+            <div className="num">
+              <Counter value={sc.value} />{sc.suffix || ""}
+            </div>
+            <div className="lbl">{sc.label}</div>
+            <p style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 6 }}>{sc.sub}</p>
           </div>
         ))}
       </div>
 
-      {/* MAIN GRID */}
-      <div style={{ display:"grid", gap:22 }}>
-
-        {/* TREND CHART */}
-        <div className="glass" style={card}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:12 }}>
+      {/* MAIN BENTO GRID */}
+      <div className="bento-grid anim-fade-up anim-fade-up-d2">
+        {/* CHART - span-8 */}
+        <div className="glass bento-span-8 p-6">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
             <div>
               <h3 style={hdr}>Continuous Parameter Tracking</h3>
-              <p style={sub}>Comparing extracted metrics across chronological reports</p>
+              <p style={sub}>Chronological comparison of extracted biomarkers</p>
             </div>
             {chartMetrics.length > 0 && (
-              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {chartMetrics.map((m) => (
                   <button key={m} onClick={() => setActiveChartMetric(m)}
+                    className="btn btn-glass btn-sm"
                     style={{
-                      fontSize:13, fontWeight:600, padding:"6px 14px", borderRadius:10, border:"1px solid", cursor:"pointer", transition:"all .15s",
-                      background: activeChartMetric===m ? "rgba(14,165,233,.2)" : "rgba(14,165,233,.05)",
-                      color:       activeChartMetric===m ? "#38bdf8" : "var(--ink-soft)",
-                      borderColor: activeChartMetric===m ? "rgba(14,165,233,.4)" : "rgba(14,165,233,.12)",
+                      padding: "6px 12px",
+                      background: activeChartMetric === m ? "var(--grad-violet)" : "rgba(99,102,241,0.05)",
+                      color: activeChartMetric === m ? "#fff" : "var(--ink-soft)",
+                      borderColor: activeChartMetric === m ? "transparent" : "var(--line)",
                     }}
                   >{m}</button>
                 ))}
@@ -215,166 +211,155 @@ export default function Dashboard() {
           </div>
 
           {chartData.length < 2 ? (
-            <div style={{ height:200, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", border:"1px dashed rgba(14,165,233,.15)", borderRadius:14, textAlign:"center", padding:24 }}>
-              <Icon d={P.chart} style={{ width:38, height:38, color:"var(--ink-faint)", marginBottom:12 }} />
-              <h4 style={{ fontSize:15, fontWeight:600, color:"var(--ink-soft)" }}>Insufficient Data for Trends</h4>
-              <p style={{ fontSize:13, color:"var(--ink-faint)", maxWidth:340, marginTop:7, lineHeight:1.6 }}>
-                Upload at least 2 medical reports to render diagnostic trends, or click <strong>Load Demo Sandbox</strong>.
-              </p>
+            <div className="empty" style={{ border: "1px dashed var(--line)", borderRadius: 16 }}>
+              <div className="eico"><Icon d={P.chart} /></div>
+              <h3>Insufficient Data for Trends</h3>
+              <p>Upload 2 or more reports to view parameter progression curves, or load the Sandbox Demo.</p>
             </div>
           ) : (
-            <div style={{ height:230 }}>
+            <div style={{ height: 240, marginTop: 10 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top:10, right:10, left:-20, bottom:0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="var(--violet)" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="var(--violet)" stopOpacity={0} />
+                      <stop offset="5%" stopColor="var(--violet-2)" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="var(--violet-2)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(14,165,233,.08)" />
-                  <XAxis dataKey="date" stroke="var(--ink-faint)" fontSize={12} tickLine={false} />
-                  <YAxis stroke="var(--ink-faint)" fontSize={12} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,.06)" />
+                  <XAxis dataKey="date" stroke="var(--ink-faint)" fontSize={11} tickLine={false} />
+                  <YAxis stroke="var(--ink-faint)" fontSize={11} tickLine={false} />
                   <Tooltip
-                    contentStyle={{ backgroundColor:"var(--card-solid)", borderColor:"var(--line-2)", borderRadius:12, fontSize:13 }}
-                    labelStyle={{ color:"var(--ink)", fontWeight:"bold" }}
-                    itemStyle={{ color:"var(--violet-2)" }}
+                    contentStyle={{ backgroundColor: "var(--card-solid)", borderColor: "var(--line-2)", borderRadius: 12, fontSize: 13, color: "var(--ink)" }}
+                    labelStyle={{ color: "var(--ink)", fontWeight: "bold" }}
                   />
-                  <Area type="monotone" dataKey={activeChartMetric} stroke="var(--violet)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorMetric)" />
+                  <Area type="monotone" dataKey={activeChartMetric} stroke="var(--violet-2)" strokeWidth={3} fillOpacity={1} fill="url(#colorMetric)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           )}
         </div>
 
-        {/* HEALTH INDEX + ACTION LOG */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:22 }}>
-
-          {/* Patient Health Index */}
-          <div className="glass" style={card}>
-            <h3 style={{ ...hdr, marginBottom:20 }}>Patient Health Index</h3>
-            {reports.length === 0 ? (
-              <div style={{ padding:"40px 0", textAlign:"center", fontSize:14, color:"var(--ink-faint)" }}>
-                No score available. Upload a report to compute indices.
-              </div>
-            ) : (
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-                <Ring
-                  pct={stats.latestScore} size={120} stroke={10}
-                  color={stats.latestScore>85?"var(--lime)":stats.latestScore>70?"var(--cyan)":"var(--fuchsia)"}
-                  label={`${stats.latestScore}`}
-                />
-                <div style={{ width:"100%", display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8, marginTop:22 }}>
-                  {Object.entries(stats.scoreCategories).map(([cat, val]) => (
-                    <div key={cat} style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"12px 6px", background:"rgba(14,165,233,.06)", border:"1px solid rgba(14,165,233,.1)", borderRadius:13 }}>
-                      <span style={{ fontSize:10, color:"var(--ink-faint)", textTransform:"uppercase", fontWeight:700, letterSpacing:"0.06em" }}>{cat.slice(0,4)}</span>
-                      <span style={{ fontSize:18, fontWeight:800, marginTop:5, color:"var(--ink)", fontFamily:"'Space Grotesk',sans-serif" }}>{val}</span>
-                      <div style={{ width:"100%", background:"rgba(14,165,233,.12)", height:4, borderRadius:4, overflow:"hidden", marginTop:7 }}>
-                        <div style={{ background:"var(--violet)", height:"100%", borderRadius:4, width:`${val}%`, transition:"width .8s ease" }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* HEALTH SCORE RING - span-4 */}
+        <div className="glass bento-span-4 p-6 flex flex-col justify-between">
+          <div>
+            <h3 style={hdr}>Patient Health Index</h3>
+            <p style={sub}>Composite score across core organs</p>
           </div>
+          
+          {reports.length === 0 ? (
+            <div className="empty py-12">No medical metrics computed yet.</div>
+          ) : (
+            <div className="flex flex-col items-center justify-center my-4" style={{ flex: 1 }}>
+              <div style={{ position: "relative" }}>
+                <Ring
+                  pct={stats.latestScore} size={130} stroke={11}
+                  color={stats.latestScore > 85 ? "var(--lime)" : stats.latestScore > 70 ? "var(--cyan-2)" : "var(--rose)"}
+                  label={`${stats.latestScore}%`}
+                />
+                <span className="absolute w-2 h-2 bg-purple-500 rounded-full" style={{ top: 8, right: 12, animation: "orbit 4s linear infinite" }} />
+              </div>
 
-          {/* Real-Time Actions Log */}
-          <div className="glass" style={card}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
-              <h3 style={hdr}>Real-Time Actions Log</h3>
-              <span style={{ fontSize:11, fontWeight:700, padding:"4px 12px", borderRadius:20, background:"rgba(16,185,129,.12)", color:"#34d399", display:"flex", alignItems:"center", gap:5, textTransform:"uppercase", letterSpacing:"0.07em" }}>
-                <span style={{ width:6, height:6, borderRadius:"50%", background:"#34d399", display:"inline-block", animation:"spin 1.5s linear infinite" }} /> Live
-              </span>
-            </div>
-            <div style={{ display:"flex", flexDirection:"column", gap:12, maxHeight:290, overflowY:"auto" }}>
-              {notifications.length === 0 ? (
-                <div style={{ padding:"40px 0", textAlign:"center", fontSize:14, color:"var(--ink-faint)" }}>
-                  No pipeline events yet. Upload a report to trigger automation.
-                </div>
-              ) : notifications.slice(0, 8).map((notif) => {
-                const time = new Date(notif.at).toLocaleTimeString(undefined, { hour:"2-digit", minute:"2-digit" });
-                const ns = notifStyle(notif.type);
-                return (
-                  <div key={notif.id} style={{ display:"flex", gap:14, paddingBottom:12, borderBottom:"1px solid rgba(14,165,233,.08)" }}>
-                    <span style={{ width:38, height:38, borderRadius:11, background:ns.bg, color:ns.c, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                      <Icon d={notif.type==="alert"?P.warn:notif.type==="reminder"?P.clock:notif.type==="email"?P.mail:P.pulse} style={{ width:17, height:17 }} />
-                    </span>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
-                        <span style={{ fontSize:14, fontWeight:600, color:"var(--ink)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{notif.title}</span>
-                        <span style={{ fontSize:11, color:"var(--ink-faint)", fontFamily:"'JetBrains Mono',monospace", flexShrink:0 }}>{time}</span>
-                      </div>
-                      <p style={{ fontSize:13, color:"var(--ink-soft)", marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{notif.desc}</p>
+              <div style={{ width: "100%", display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6, marginTop: 20 }}>
+                {Object.entries(stats.scoreCategories).map(([cat, val]) => (
+                  <div key={cat} className="glass-inset p-2 text-center" style={{ borderRadius: 10 }}>
+                    <span style={{ fontSize: 9, color: "var(--ink-faint)", textTransform: "uppercase", fontWeight: 700 }}>{cat.slice(0, 4)}</span>
+                    <div style={{ fontSize: 15, fontWeight: 800, marginTop: 2, color: "var(--ink)", fontFamily: "'Space Grotesk',sans-serif" }}>{val}</div>
+                    <div style={{ width: "100%", background: "rgba(99,102,241,.1)", height: 3, borderRadius: 2, overflow: "hidden", marginTop: 5 }}>
+                      <div style={{ background: "var(--violet-2)", height: "100%", width: `${val}%` }} />
                     </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* RECENT REPORTS + QUICK OPS */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:22 }}>
-
-          {/* Recent Reports */}
-          <div className="glass" style={{ borderRadius:18, overflow:"hidden" }}>
-            <div style={{ padding:"18px 24px", borderBottom:"1px solid var(--line)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <h3 style={hdr}>Recent Digitized Reports</h3>
-              <Link to="/app/reports" style={{ fontSize:14, color:"var(--violet-2)", fontWeight:600, textDecoration:"none" }}>View All →</Link>
+        {/* LIVE ACTIONS LOG - span-6 */}
+        <div className="glass bento-span-6 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 style={hdr}>Real-Time Activity Stream</h3>
+            <div className="sys-status">
+              <span className="sys-dot"></span>
+              Live Feed
             </div>
-            {reports.length === 0 ? (
-              <div style={{ padding:"40px 24px", textAlign:"center", fontSize:14, color:"var(--ink-faint)" }}>
-                No reports uploaded yet. Upload a report to start monitoring!
-              </div>
-            ) : reports.slice(0, 5).map((rep) => {
-              const summary = rep.summary || {};
-              const risk = summary.risk_level || "low";
-              const rs = riskStyle(risk);
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 310, overflowY: "auto" }}>
+            {notifications.length === 0 ? (
+              <div className="empty">No platform updates triggered yet.</div>
+            ) : notifications.slice(0, 6).map((notif) => {
+              const time = new Date(notif.at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+              const ns = notifStyle(notif.type);
               return (
-                <div key={rep.content_hash}
-                  style={{ display:"flex", alignItems:"center", gap:16, padding:"15px 24px", borderBottom:"1px solid var(--line)", cursor:"pointer", transition:"background .15s" }}
-                  onMouseEnter={e=>e.currentTarget.style.background="rgba(14,165,233,.05)"}
-                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}
-                >
-                  <span style={{ width:42, height:42, borderRadius:12, background:"rgba(14,165,233,.1)", color:"#38bdf8", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <Icon d={P.file} style={{ width:19, height:19 }} />
+                <div key={notif.id} className="flex gap-3 p-3 glass-inset" style={{ borderRadius: 12 }}>
+                  <span className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: ns.bg, color: ns.c }}>
+                    <Icon d={notif.type === "alert" ? P.warn : notif.type === "reminder" ? P.clock : notif.type === "email" ? P.mail : P.pulse} style={{ width: 17, height: 17 }} />
                   </span>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:15, fontWeight:600, color:"var(--ink)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {summary.patient_details?.report_type || "General Lab"}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="flex items-center justify-between gap-4">
+                      <span style={{ fontSize: 13.5, fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{notif.title}</span>
+                      <span style={{ fontSize: 10, color: "var(--ink-faint)", fontFamily: "'JetBrains Mono',monospace" }}>{time}</span>
                     </div>
-                    <div style={{ fontSize:13, color:"var(--ink-soft)", marginTop:3 }}>
-                      {new Date(rep.created_at).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
-                    <span style={{ fontSize:11, fontWeight:700, padding:"4px 11px", borderRadius:20, background:rs.bg, color:rs.c, textTransform:"uppercase", letterSpacing:"0.05em" }}>{risk}</span>
-                    <span style={{ fontSize:16, fontWeight:800, color:"var(--ink)", fontFamily:"'Space Grotesk',sans-serif" }}>{summary.health_score?.overall || "—"}</span>
+                    <p style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{notif.desc}</p>
                   </div>
                 </div>
               );
             })}
           </div>
+        </div>
 
-          {/* Quick Operations */}
-          <div className="glass" style={card}>
-            <h3 style={{ ...hdr, marginBottom:18 }}>Quick Operations</h3>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              {QUICK_OPS.map((op) => (
-                <Link key={op.to} to={op.to}
-                  style={{ padding:"18px 14px", background:op.bg, border:"1px solid rgba(14,165,233,.1)", borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", textDecoration:"none", transition:"all .2s", gap:9 }}
-                  onMouseEnter={e=>{ e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow="0 10px 28px rgba(14,165,233,.15)"; }}
-                  onMouseLeave={e=>{ e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow="none"; }}
-                >
-                  <Icon d={op.icon} style={{ width:24, height:24, color:op.c }} />
-                  <span style={{ fontSize:14, fontWeight:700, color:"var(--ink)" }}>{op.label}</span>
-                </Link>
-              ))}
-            </div>
+        {/* RECENT REPORTS - span-6 */}
+        <div className="glass bento-span-6 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 style={hdr}>Recent Digitized Labs</h3>
+            <Link to="/app/reports" className="btn btn-glass btn-sm" style={{ padding: "6px 12px" }}>View Database →</Link>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 310, overflowY: "auto" }}>
+            {reports.length === 0 ? (
+              <div className="empty">No scan reports imported.</div>
+            ) : reports.slice(0, 4).map((rep) => {
+              const summary = rep.summary || {};
+              const risk = summary.risk_level || "low";
+              const rs = riskStyle(risk);
+              return (
+                <div key={rep.content_hash} className="flex items-center justify-between p-3 glass-inset hover:border-indigo-500/30 transition-all" style={{ borderRadius: 12 }}>
+                  <div className="flex items-center gap-3">
+                    <span className="w-9 h-9 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center flex-shrink-0">
+                      <Icon d={P.file} style={{ width: 18, height: 18 }} />
+                    </span>
+                    <div>
+                      <div className="font-semibold text-sm text-zinc-100 truncate" style={{ maxWidth: 160 }}>
+                        {summary.patient_details?.report_type || "General Analysis"}
+                      </div>
+                      <div className="text-[11px] text-zinc-500 mt-0.5">{new Date(rep.created_at).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider" style={{ backgroundColor: rs.bg, color: rs.c }}>
+                      {risk}
+                    </span>
+                    <span className="font-bold text-base text-zinc-200" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                      {summary.health_score?.overall || "—"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
+        {/* QUICK OPERATIONS - span-12 */}
+        <div className="glass bento-span-12 p-6">
+          <h3 style={{ ...hdr, marginBottom: 16 }}>Operational Quick Actions</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
+            {QUICK_OPS.map((op) => (
+              <Link key={op.to} to={op.to} className="glass-inset p-4 flex flex-col items-center justify-center text-center hover:border-indigo-500/30 transition-all" style={{ borderRadius: 14, gap: 8 }}>
+                <Icon d={op.icon} style={{ width: 22, height: 22, color: op.c }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{op.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </Shell>
   );
