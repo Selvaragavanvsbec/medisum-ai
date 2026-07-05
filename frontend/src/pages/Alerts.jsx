@@ -2,6 +2,12 @@ import Shell from "./Shell.jsx";
 import { Icon, P } from "../icons.jsx";
 import { useHealth } from "../context/HealthContext.jsx";
 
+const sevConfig = {
+  red:    { color: "var(--rose)",   bg: "rgba(225,29,72,.06)",   border: "rgba(225,29,72,.18)",   label: "Critical",  dotColor: "#fb7185" },
+  yellow: { color: "var(--amber)",  bg: "rgba(217,119,6,.06)",   border: "rgba(217,119,6,.18)",   label: "Warning",   dotColor: "#fbbf24" },
+  green:  { color: "#22c55e",       bg: "rgba(34,197,94,.06)",   border: "rgba(34,197,94,.18)",   label: "Normal",    dotColor: "#4ade80" },
+};
+
 export default function Alerts() {
   const { alerts, settings } = useHealth();
 
@@ -17,81 +23,132 @@ export default function Alerts() {
 
   return (
     <Shell>
-      <div className="page-head">
+      <div className="page-head anim-fade-up">
         <div>
           <h1>Clinical Alert Manager</h1>
           <p>Real-time detection of high-risk parameters, color-coded severity badges, and auto-dispatched physician emails.</p>
         </div>
+        {alerts.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.25)", padding: "8px 16px", borderRadius: 12, flexShrink: 0 }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--amber)", animation: "pulseGlow 1s infinite", display: "inline-block" }} />
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--amber)" }}>{alerts.length} Active Alerts</span>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24 }}>
         
-        {/* Left Columns: Active Alerts */}
-        <div className="xl:col-span-2 flex flex-col gap-4">
-          <h3 className="font-bold text-sm text-zinc-200 mb-2">Flagged Anomalies ({alerts.length})</h3>
+        {/* Left: Active Alerts */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", fontFamily: "'Space Grotesk',sans-serif" }}>
+              Flagged Anomalies
+              <span style={{ marginLeft: 10, fontSize: 12, fontWeight: 600, color: "var(--ink-faint)", background: "rgba(99,102,241,.1)", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--line)" }}>
+                {alerts.length}
+              </span>
+            </h3>
+          </div>
           
           {alerts.length === 0 ? (
-            <div className="glass empty p-12 text-center border border-dashed border-purple-500/15">
-              <Icon d={P.checkc} className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
+            <div className="glass empty anim-fade-up" style={{ border: "1px dashed var(--line)", padding: "80px 32px" }}>
+              <div className="eico" style={{ background: "rgba(34,197,94,.12)", color: "#22c55e" }}>
+                <Icon d={P.checkc} />
+              </div>
               <h3>All readings normal</h3>
-              <p className="text-xs text-zinc-400 mt-1">No clinical alerts or warnings have been triggered by your medical reports.</p>
+              <p>No clinical alerts or warnings have been triggered by your medical reports.</p>
             </div>
           ) : (
-            alerts.map((alert) => {
+            alerts.map((alert, idx) => {
+              const sev = sevConfig[alert.severity] || sevConfig.green;
               const isRed = alert.severity === "red";
-              const isYellow = alert.severity === "yellow";
               
               return (
-                <div 
+                <div
                   key={alert.id}
-                  className={`glass p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden flex gap-4 ${
-                    isRed ? "border-red-500/20 bg-red-500/5 hover:border-red-500/30" : 
-                    isYellow ? "border-amber-500/20 bg-amber-500/5 hover:border-amber-500/30" :
-                    "border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/30"
-                  }`}
+                  className="anim-fade-up"
+                  style={{
+                    animationDelay: `${idx * 0.08}s`,
+                    background: sev.bg,
+                    border: `1px solid ${sev.border}`,
+                    borderRadius: 20,
+                    padding: "24px 28px",
+                    position: "relative",
+                    overflow: "hidden",
+                    backdropFilter: "blur(20px)",
+                    boxShadow: "0 4px 24px rgba(0,0,0,.06)",
+                  }}
                 >
-                  {/* Left Icon and Pulse animation for red severity */}
-                  <div className="flex-shrink-0 flex items-start mt-0.5">
-                    <span className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      isRed ? "bg-red-500/15 text-red-400" :
-                      isYellow ? "bg-amber-500/15 text-amber-400" :
-                      "bg-emerald-500/15 text-emerald-400"
-                    }`}>
-                      <Icon 
-                        d={isRed || isYellow ? P.warn : P.checkc} 
-                        className={`w-5 h-5 ${isRed ? "animate-pulse" : ""}`} 
+                  {/* Glow accent left bar */}
+                  <div style={{
+                    position: "absolute", left: 0, top: 0, bottom: 0, width: 4,
+                    background: sev.color,
+                    boxShadow: `0 0 16px ${sev.color}`,
+                  }} />
+
+                  <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+                    {/* Severity Icon */}
+                    <div style={{
+                      width: 52, height: 52, borderRadius: 16, flexShrink: 0,
+                      display: "grid", placeItems: "center",
+                      background: `${sev.color}18`,
+                      border: `1px solid ${sev.color}30`,
+                    }}>
+                      <Icon
+                        d={isRed || alert.severity === "yellow" ? P.warn : P.checkc}
+                        style={{ width: 24, height: 24, color: sev.color, animation: isRed ? "pulseGlow 1.5s infinite" : "none" }}
                       />
-                    </span>
-                  </div>
+                    </div>
 
-                  {/* Body details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h4 className="font-bold text-sm text-zinc-100">{alert.item} <span className="font-mono text-zinc-400 text-xs ml-1">({alert.value})</span></h4>
-                      
-                      <div className="flex gap-2">
-                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                          isRed ? "bg-red-500/20 text-red-400" :
-                          isYellow ? "bg-amber-500/20 text-amber-400" :
-                          "bg-emerald-500/20 text-emerald-400"
-                        }`}>
-                          {alert.severity} Severity
-                        </span>
-                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 font-bold">
-                          Risk: {alert.risk_percentage}%
-                        </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Header row */}
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <h4 style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", fontFamily: "'Space Grotesk',sans-serif" }}>
+                            {alert.item}
+                          </h4>
+                          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "var(--ink-faint)", background: "rgba(99,102,241,.08)", padding: "3px 10px", borderRadius: 20 }}>
+                            {alert.value}
+                          </span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{
+                            fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em",
+                            padding: "4px 12px", borderRadius: 20,
+                            background: `${sev.color}15`, color: sev.color,
+                            border: `1px solid ${sev.color}30`,
+                          }}>
+                            {sev.label} Severity
+                          </span>
+                          <span style={{
+                            fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em",
+                            padding: "4px 12px", borderRadius: 20,
+                            background: "rgba(139,92,246,.12)", color: "var(--violet-2)",
+                            border: "1px solid rgba(139,92,246,.2)",
+                          }}>
+                            Risk: {alert.risk_percentage}%
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="text-xs text-zinc-300 mt-2 leading-relaxed font-medium">
-                      <span className="text-zinc-400 font-semibold">Reason:</span> {alert.reason}
-                    </div>
-                    
-                    <div className="text-xs text-zinc-300 mt-2.5 leading-relaxed bg-zinc-950/30 border border-purple-500/5 p-3 rounded-xl">
-                      <span className="text-emerald-400 font-semibold flex items-center gap-1.5 mb-1">
-                        <Icon d={P.sparkle} className="w-3.5 h-3.5 text-emerald-400" /> Suggested Action
-                      </span>
-                      {alert.suggested_action}
+                      {/* Reason */}
+                      <p style={{ fontSize: 14, color: "var(--ink-soft)", lineHeight: 1.6, marginBottom: 16 }}>
+                        <strong style={{ color: "var(--ink)" }}>Reason: </strong>{alert.reason}
+                      </p>
+
+                      {/* Suggested Action */}
+                      <div style={{
+                        background: "rgba(16,185,129,.06)",
+                        border: "1px solid rgba(16,185,129,.18)",
+                        borderRadius: 14, padding: "14px 18px",
+                      }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, fontSize: 12, fontWeight: 700, color: "#22c55e" }}>
+                          <Icon d={P.sparkle} style={{ width: 14, height: 14 }} />
+                          Suggested Action
+                        </div>
+                        <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
+                          {alert.suggested_action}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -100,30 +157,86 @@ export default function Alerts() {
           )}
         </div>
 
-        {/* Right Column: Email logs for red severity alerts */}
-        <div className="glass p-5 rounded-2xl h-fit">
-          <h3 className="font-bold text-sm text-zinc-200 mb-1">Critical Dispatch Status</h3>
-          <p className="text-[10px] text-zinc-400 mb-4">Auto-email notifications dispatched to patient clinicians on critical triggers.</p>
-          
-          <div className="flex flex-col gap-3">
-            {emailLogs.length === 0 ? (
-              <div className="text-center text-xs text-zinc-500 py-8">No critical dispatches registered.</div>
-            ) : (
-              emailLogs.map((log) => (
-                <div key={log.id} className="text-xs bg-zinc-900/40 border border-purple-500/5 p-3 rounded-xl flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between font-mono text-[9px]">
-                    <span className="text-purple-400">{new Date(log.date).toLocaleDateString()}</span>
-                    <span className="text-emerald-400 font-bold uppercase tracking-wider">{log.status}</span>
-                  </div>
-                  <div className="font-semibold text-zinc-200 truncate">{log.subject}</div>
-                  <div className="text-[10px] text-zinc-500">Recipient: {log.to}</div>
+        {/* Right: Email Dispatch Status */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className="glass" style={{ padding: "24px 26px", borderRadius: 20 }}>
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 12, background: "rgba(99,102,241,.12)", display: "grid", placeItems: "center", color: "var(--violet-2)" }}>
+                <Icon d={P.mail || P.pulse} style={{ width: 17, height: 17 }} />
+              </div>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", fontFamily: "'Space Grotesk',sans-serif" }}>
+                Critical Dispatch Status
+              </h3>
+            </div>
+            <p style={{ fontSize: 12.5, color: "var(--ink-soft)", lineHeight: 1.55, marginBottom: 20 }}>
+              Auto-email notifications dispatched to patient clinicians on critical triggers.
+            </p>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {emailLogs.length === 0 ? (
+                <div style={{
+                  textAlign: "center", padding: "40px 16px",
+                  color: "var(--ink-faint)", fontSize: 13,
+                  background: "rgba(99,102,241,.04)", borderRadius: 14,
+                  border: "1px dashed var(--line)",
+                }}>
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>📭</div>
+                  No critical dispatches registered.
                 </div>
-              ))
-            )}
+              ) : (
+                emailLogs.map((log) => (
+                  <div key={log.id} style={{
+                    background: "rgba(99,102,241,.05)",
+                    border: "1px solid var(--line)",
+                    borderRadius: 14, padding: "14px 16px",
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "var(--violet-2)", fontWeight: 700 }}>
+                        {new Date(log.date).toLocaleDateString()}
+                      </span>
+                      <span style={{ fontSize: 10, color: "#22c55e", fontWeight: 800, textTransform: "uppercase", letterSpacing: ".04em" }}>
+                        ✓ {log.status}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>{log.subject}</div>
+                    <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>To: {log.to}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Quick Info Panel */}
+          <div className="glass" style={{ padding: "22px 26px", borderRadius: 20, background: "linear-gradient(135deg, rgba(139,92,246,.08), rgba(99,102,241,.04))" }}>
+            <h4 style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 14, fontFamily: "'Space Grotesk',sans-serif" }}>
+              Severity Guide
+            </h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                { color: "#fb7185", label: "Critical", desc: "Requires immediate attention" },
+                { color: "#fbbf24", label: "Warning", desc: "Monitor closely, consult doctor" },
+                { color: "#4ade80", label: "Normal", desc: "Within reference range" },
+              ].map((s) => (
+                <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: s.color, boxShadow: `0 0 8px ${s.color}`, flexShrink: 0 }} />
+                  <div>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink)" }}>{s.label}</span>
+                    <span style={{ fontSize: 11, color: "var(--ink-faint)", marginLeft: 8 }}>{s.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
       </div>
+
+      {/* Responsive styles */}
+      <style>{`
+        @media (max-width: 900px) {
+          .alerts-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </Shell>
   );
 }

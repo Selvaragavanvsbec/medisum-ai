@@ -51,12 +51,12 @@ export default function Login() {
               <div className="aside-feat"><span className="tick"><Icon d={P.check} /></span>Your reports are never stored</div>
             </div>
           </div>
-          <div style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>An educational tool, not a medical device.</div>
+          <div className="auth-aside-footer" style={{ fontSize: 12.5, color: "rgba(248,250,252,0.5)" }}>An educational tool, not a medical device.</div>
         </aside>
 
         <main className="auth-main">
           <div className="auth-box">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
               <Link to="/" className="brand"><span className="mark" style={{ width: 34, height: 34 }}><Icon d={P.pulse} /></span><span className="bn" style={{ fontSize: 19 }}>Medi<span>Sum</span></span></Link>
               <ThemeToggle />
             </div>

@@ -36,7 +36,7 @@ export default function CompareReports() {
       const val2 = f2 ? parseFloat(f2.value) : NaN;
 
       let delta = null;
-      let deltaType = "none"; // 'up', 'down', 'none'
+      let deltaType = "none";
 
       if (!isNaN(val1) && !isNaN(val2)) {
         const diff = val2 - val1;
@@ -64,6 +64,9 @@ export default function CompareReports() {
     });
   }, [rep1, rep2]);
 
+  const flagColor = (flag) =>
+    flag === "high" ? "var(--rose)" : flag === "low" ? "var(--amber)" : flag === "normal" ? "#22c55e" : "var(--ink-faint)";
+
   return (
     <Shell>
       <div className="page-head anim-fade-up">
@@ -77,62 +80,95 @@ export default function CompareReports() {
       </div>
 
       {reports.length < 2 ? (
-        <div className="glass empty p-12 text-center anim-fade-up anim-fade-up-d1" style={{ border: "1px dashed var(--line)" }}>
+        <div className="glass empty anim-fade-up anim-fade-up-d1" style={{ border: "1px dashed var(--line)", padding: "80px 32px" }}>
           <div className="eico"><Icon d={P.compare} /></div>
           <h3>Insufficient Reports for Comparison</h3>
           <p>Please upload at least two medical reports or load the Sandbox Demo on the Dashboard.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-6">
-          {/* Selectors */}
-          <div className="glass p-5 compare-grid anim-fade-up anim-fade-up-d1">
-            <div className="field">
-              <label>Select Base Report (Older)</label>
-              <select value={rep1Id} onChange={(e) => setRep1Id(e.target.value)}>
-                {reports.map((r) => (
-                  <option key={r.content_hash} value={r.content_hash}>
-                    {r.summary?.patient_details?.report_type || "Lab Report"} — {new Date(r.created_at).toLocaleDateString()}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
 
-            <div className="field">
-              <label>Select Comparison Report (Newer)</label>
-              <select value={rep2Id} onChange={(e) => setRep2Id(e.target.value)}>
-                {reports.map((r) => (
-                  <option key={r.content_hash} value={r.content_hash}>
-                    {r.summary?.patient_details?.report_type || "Lab Report"} — {new Date(r.created_at).toLocaleDateString()}
-                  </option>
-                ))}
-              </select>
+          {/* Selectors */}
+          <div className="glass anim-fade-up anim-fade-up-d1" style={{ padding: "28px 32px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--violet-2)" }} />
+              <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-faint)" }}>Select Reports to Compare</span>
+            </div>
+            <div className="compare-grid" style={{ marginBottom: 0 }}>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: 2, background: "var(--violet-2)", display: "inline-block" }} />
+                  Base Report (Older)
+                </label>
+                <select value={rep1Id} onChange={(e) => setRep1Id(e.target.value)}>
+                  {reports.map((r) => (
+                    <option key={r.content_hash} value={r.content_hash}>
+                      {r.summary?.patient_details?.report_type || "Lab Report"} — {new Date(r.created_at).toLocaleDateString()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: 2, background: "var(--cyan-2)", display: "inline-block" }} />
+                  Comparison Report (Newer)
+                </label>
+                <select value={rep2Id} onChange={(e) => setRep2Id(e.target.value)}>
+                  {reports.map((r) => (
+                    <option key={r.content_hash} value={r.content_hash}>
+                      {r.summary?.patient_details?.report_type || "Lab Report"} — {new Date(r.created_at).toLocaleDateString()}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Side by side overview comparison cards */}
+          {/* Side by side cards */}
           {rep1 && rep2 && (
             <div className="compare-grid anim-fade-up anim-fade-up-d2">
-              <div className="glass p-5 flex flex-col justify-between">
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-zinc-500 mb-2">Base Diagnostics</div>
-                  <h3 className="font-bold text-sm text-zinc-200">{rep1.summary?.patient_details?.report_type}</h3>
-                  <p className="text-xs text-zinc-400 mt-2 leading-relaxed">{rep1.summary?.overview}</p>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
-                  <span className="text-xs font-mono text-zinc-500">{new Date(rep1.created_at).toLocaleDateString()}</span>
-                  <span className="text-xs font-bold text-zinc-200">Health Index: {rep1.summary?.health_score?.overall}%</span>
+              {/* Base Card */}
+              <div className="compare-card">
+                <div className="compare-card-header base">⬤ Base Diagnostics</div>
+                <div className="compare-card-body">
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--ink)", marginBottom: 10, fontFamily: "'Space Grotesk',sans-serif" }}>
+                    {rep1.summary?.patient_details?.report_type}
+                  </h3>
+                  <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.65, marginBottom: 20 }}>{rep1.summary?.overview}</p>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, borderTop: "1px solid var(--line)" }}>
+                    <span style={{ fontSize: 12, color: "var(--ink-faint)", fontFamily: "'JetBrains Mono',monospace" }}>
+                      {new Date(rep1.created_at).toLocaleDateString()}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 12, color: "var(--ink-faint)" }}>Health Index</span>
+                      <span style={{ fontSize: 20, fontWeight: 800, color: "var(--violet-2)", fontFamily: "'Space Grotesk',sans-serif" }}>
+                        {rep1.summary?.health_score?.overall}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="glass p-5 flex flex-col justify-between">
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-zinc-500 mb-2">Target Comparison</div>
-                  <h3 className="font-bold text-sm text-zinc-200">{rep2.summary?.patient_details?.report_type}</h3>
-                  <p className="text-xs text-zinc-400 mt-2 leading-relaxed">{rep2.summary?.overview}</p>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
-                  <span className="text-xs font-mono text-zinc-500">{new Date(rep2.created_at).toLocaleDateString()}</span>
-                  <span className="text-xs font-bold text-zinc-200">Health Index: {rep2.summary?.health_score?.overall}%</span>
+              {/* Target Card */}
+              <div className="compare-card">
+                <div className="compare-card-header target">⬤ Target Comparison</div>
+                <div className="compare-card-body">
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--ink)", marginBottom: 10, fontFamily: "'Space Grotesk',sans-serif" }}>
+                    {rep2.summary?.patient_details?.report_type}
+                  </h3>
+                  <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.65, marginBottom: 20 }}>{rep2.summary?.overview}</p>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, borderTop: "1px solid var(--line)" }}>
+                    <span style={{ fontSize: 12, color: "var(--ink-faint)", fontFamily: "'JetBrains Mono',monospace" }}>
+                      {new Date(rep2.created_at).toLocaleDateString()}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 12, color: "var(--ink-faint)" }}>Health Index</span>
+                      <span style={{ fontSize: 20, fontWeight: 800, color: "var(--cyan-2)", fontFamily: "'Space Grotesk',sans-serif" }}>
+                        {rep2.summary?.health_score?.overall}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -142,8 +178,13 @@ export default function CompareReports() {
           {rep1 && rep2 && (
             <div className="glass tablecard anim-fade-up anim-fade-up-d3">
               <div className="th">
-                <h3>Parameters Progression Analysis</h3>
-                <span className="text-[10px] font-mono text-zinc-500">{comparisonData.length} biomarkers matched</span>
+                <div>
+                  <h3>Parameters Progression Analysis</h3>
+                  <p style={{ fontSize: 13, color: "var(--ink-soft)", marginTop: 4 }}>Side-by-side biomarker delta tracking</p>
+                </div>
+                <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "var(--ink-faint)", background: "rgba(99,102,241,.08)", padding: "5px 12px", borderRadius: 20, border: "1px solid var(--line)" }}>
+                  {comparisonData.length} biomarkers matched
+                </span>
               </div>
               <div style={{ overflowX: "auto" }}>
                 <table className="compare-table">
@@ -158,20 +199,24 @@ export default function CompareReports() {
                   <tbody>
                     {comparisonData.map((row) => (
                       <tr key={row.item}>
-                        <td style={{ fontWeight: "600", color: "var(--ink)" }}>{row.item}</td>
+                        <td style={{ fontWeight: 700, color: "var(--ink)", fontSize: 14 }}>{row.item}</td>
                         <td>
-                          <div className="flex items-center gap-2">
-                            <span>{row.value1}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 13 }}>{row.value1}</span>
                             {row.flag1 !== "normal" && row.value1 !== "—" && (
-                              <span style={{ fontSize: 9, color: "var(--amber)", fontWeight: "bold" }}>({row.flag1})</span>
+                              <span style={{ fontSize: 9, color: flagColor(row.flag1), fontWeight: 800, background: `${flagColor(row.flag1)}15`, padding: "2px 8px", borderRadius: 20, textTransform: "uppercase" }}>
+                                {row.flag1}
+                              </span>
                             )}
                           </div>
                         </td>
                         <td>
-                          <div className="flex items-center gap-2">
-                            <span>{row.value2}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 13 }}>{row.value2}</span>
                             {row.flag2 !== "normal" && row.value2 !== "—" && (
-                              <span style={{ fontSize: 9, color: "var(--amber)", fontWeight: "bold" }}>({row.flag2})</span>
+                              <span style={{ fontSize: 9, color: flagColor(row.flag2), fontWeight: 800, background: `${flagColor(row.flag2)}15`, padding: "2px 8px", borderRadius: 20, textTransform: "uppercase" }}>
+                                {row.flag2}
+                              </span>
                             )}
                           </div>
                         </td>
@@ -186,7 +231,7 @@ export default function CompareReports() {
                             <span className="delta-same">— 0.0</span>
                           )}
                           {row.deltaType === "none" && (
-                            <span className="text-zinc-500">—</span>
+                            <span style={{ color: "var(--ink-faint)" }}>—</span>
                           )}
                         </td>
                       </tr>
