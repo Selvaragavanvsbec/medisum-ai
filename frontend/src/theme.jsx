@@ -1,27 +1,17 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { Icon, P } from "./icons.jsx";
 
 const ThemeCtx = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    try {
-      return sessionStorage.getItem("medisum_theme") || "dark";
-    } catch {
-      return "dark";
-    }
-  });
+  // Always lock theme to light (morning) mode
+  const theme = "light";
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    try {
-      sessionStorage.setItem("medisum_theme", theme);
-    } catch {
-      /* ignore */
-    }
-  }, [theme]);
+    document.documentElement.setAttribute("data-theme", "light");
+  }, []);
 
-  const toggle = useCallback(() => setTheme((t) => (t === "dark" ? "light" : "dark")), []);
+  const toggle = () => {};
 
   return <ThemeCtx.Provider value={{ theme, toggle }}>{children}</ThemeCtx.Provider>;
 }
@@ -31,10 +21,14 @@ export function useTheme() {
 }
 
 export function ThemeToggle() {
-  const { theme, toggle } = useTheme();
   return (
-    <button className="theme-btn" onClick={toggle} aria-label="Toggle theme" title="Toggle theme (dark / light)">
-      <Icon d={theme === "dark" ? P.sun : P.moon} />
-    </button>
+    <div 
+      className="theme-btn text-amber-500 flex items-center justify-center" 
+      style={{ cursor: "default", background: "rgba(245, 158, 11, 0.08)", borderColor: "rgba(245, 158, 11, 0.2)" }} 
+      title="Locked to Morning Mode"
+    >
+      <Icon d={P.sun} className="w-[18px] h-[18px]" style={{ animation: "spin 12s linear infinite" }} />
+    </div>
   );
 }
+
