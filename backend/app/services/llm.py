@@ -2,7 +2,14 @@
 import json
 import logging
 
-from groq import AsyncGroq
+from groq import (
+    AsyncGroq,
+    APIConnectionError,
+    APIStatusError,
+    APITimeoutError,
+    AuthenticationError,
+    RateLimitError,
+)
 
 from app.core.config import get_settings
 from app.services.prompts import build_messages
@@ -18,7 +25,7 @@ def _get_client() -> AsyncGroq:
     if _client is None:
         if not settings.GROQ_API_KEY:
             raise RuntimeError("GROQ_API_KEY is not configured.")
-        _client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+        _client = AsyncGroq(api_key=settings.GROQ_API_KEY, timeout=30.0, max_retries=2)
     return _client
 
 
@@ -77,12 +84,27 @@ async def chat_with_agent(message: str, context_report: str | None = None) -> st
         })
         
     messages.append({"role": "user", "content": message})
-    
-    completion = await client.chat.completions.create(
-        model=settings.GROQ_MODEL,
-        messages=messages,
-        temperature=0.5,
-        max_tokens=600,
-    )
-    return completion.choices[0].message.content or "No response from AI."
+
+    try:
+        completion = await client.chat.completions.create(
+            model=settings.GROQ_MODEL,
+            messages=messages,
+            temperature=0.5,
+            max_tokens=600,
+        )
+    except AuthenticationError as exc:
+        logger.error("Groq authentication failed: %s", exc)
+        raise RuntimeError("AI service is misconfigured (invalid API key).") from exc
+    except RateLimitError as exc:
+        logger.warning("Groq rate limit hit: %s", exc)
+        raise RuntimeError("The AI assistant is busy right now. Please try again shortly.") from exc
+    except (APITimeoutError, APIConnectionError) as exc:
+        logger.warning("Groq connection issue: %s", exc)
+        raise RuntimeError("Couldn't reach the AI service. Please check your connection and try again.") from exc
+    except APIStatusError as exc:
+        logger.error("Groq API error (%s): %s", exc.status_code, exc)
+        raise RuntimeError("The AI assistant hit an unexpected error. Please try again.") from exc
+
+    reply = completion.choices[0].message.content
+    return reply.strip() if reply else "I couldn't generate a response. Please try rephrasing your question."
 

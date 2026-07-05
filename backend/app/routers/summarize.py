@@ -17,6 +17,10 @@ logger = logging.getLogger("medisum.api")
 settings = get_settings()
 router = APIRouter()
 limiter = RateLimiter(settings.RATE_LIMIT_PER_MINUTE)
+# Chat gets its own budget so summarizing a report doesn't eat into the
+# chatbot's quota (they used to share one bucket, which made the chatbot
+# appear to silently stop responding after a couple of summaries).
+chat_limiter = RateLimiter(max(settings.RATE_LIMIT_PER_MINUTE, 30))
 _bearer = HTTPBearer(auto_error=False)
 
 
@@ -100,12 +104,31 @@ async def get_user_reports(user: dict = Depends(current_user)):
 
 
 @router.post("/chat")
-async def chat_interaction(payload: ChatRequest):
+async def chat_interaction(payload: ChatRequest, request: Request):
     """Answer patient questions about report or general queries."""
+    chat_limiter.check(client_key(request))
+
+    message = sanitize(payload.message)
+    screen = screen_input(message, settings.MAX_INPUT_CHARS)
+    if not screen.ok:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=screen.reason)
+
+    context = sanitize(payload.context_report_text) if payload.context_report_text else None
+    if context and len(context) > settings.MAX_INPUT_CHARS:
+        context = context[: settings.MAX_INPUT_CHARS]
+
     try:
-        reply = await chat_with_agent(payload.message, payload.context_report_text)
+        reply = await chat_with_agent(message, context)
         return {"reply": reply}
-    except Exception as exc:
+    except RuntimeError as exc:  # missing API key etc.
+        logger.error("Chatbot config error: %s", exc)
+        raise HTTPException(status_code=503, detail=str(exc))
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
         logger.error("Chatbot inference failed: %s", exc)
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(
+            status_code=502,
+            detail="The AI assistant is temporarily unavailable. Please try again in a moment.",
+        )
 
